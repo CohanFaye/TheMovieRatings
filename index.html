@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Movie Ratings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #1E3A5F, #673AB7);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .light-mode {
+      background: linear-gradient(135deg, #ffffff, #cccccc);
+      color: black;
+    }
+    .light-mode .container {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .ocean-theme {
+      background: linear-gradient(135deg, #006064, #26c6da);
+      color: white;
+    }
+    .ocean-theme .container {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .sunset-theme {
+      background: linear-gradient(135deg, #FF6E40, #FFD180);
+      color: #212121;
+    }
+    .sunset-theme .container {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .forest-theme {
+      background: linear-gradient(135deg, #2E7D32, #A5D6A7);
+      color: #f1f1f1;
+    }
+    .forest-theme .container {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      text-align: center;
+    }
+    textarea, select, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    label {
+      text-align: left;
+      display: block;
+      margin: 5px 0 2px;
+    }
+    .star-rating {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .star {
+      font-size: 24px;
+      cursor: pointer;
+      color: gray;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+    #entries {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .entry {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid white;
+      white-space: pre-wrap;
+    }
+    .entry button {
+      margin-top: 5px;
+      width: auto;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    #message {
+      margin-top: 10px;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      display: none;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+      textarea, input, select, button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>The Movie Ratings</h1>
+    <h4>{Share your movie ratings with everyone}</h4>
+
+    <label for="movieName">Movie Name:</label>
+    <input type="text" id="movieName" placeholder="Movie Name" />
+
+    <label for="IMDBLink">IMDB Link (Optional):</label>
+    <input type="text" id="IMDBLink" placeholder="Insert IMDB Link here..." />
+
+    <label for="genre">Genre:</label>
+    <select id="genre">
+      <optgroup label="Popular">
+        <option value="Action">Action</option>
+        <option value="Comedy">Comedy</option>
+        <option value="Drama">Drama</option>
+      </optgroup>
+      <optgroup label="Other">
+        <option value="Horror">Horror</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+        <option value="Other">Other</option>
+      </optgroup>
+    </select>
+
+    <div class="star-rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+
+    <label for="review">Review:</label>
+    <textarea id="review" placeholder="Your review..."></textarea>
+
+    <button onclick="saveEntry()">Save Entry</button>
+    <button onclick="toggleTheme()">Toggle Theme</button>
+
+    <label for="filterGenre">Filter by Genre:</label>
+    <select id="filterGenre" onchange="displayEntries()">
+      <option value="All">All Genres</option>
+      <option value="Action">Action</option>
+      <option value="Comedy">Comedy</option>
+      <option value="Drama">Drama</option>
+      <option value="Horror">Horror</option>
+      <option value="Sci-Fi">Sci-Fi</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <div id="entries"></div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+  let selectedRating = 0;
+  const stars = document.querySelectorAll('.star');
+
+  const themes = ['default', 'light', 'ocean', 'sunset', 'forest'];
+  let currentThemeIndex = 0;
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      selectedRating = parseInt(star.getAttribute('data-value'));
+      updateStars();
+    });
+  });
+
+  function updateStars() {
+    stars.forEach(star => {
+      const value = parseInt(star.getAttribute('data-value'));
+      star.style.color = value <= selectedRating ? 'gold' : 'gray';
+    });
+  }
+
+  function saveEntry() {
+    const movieName = document.getElementById('movieName').value.trim();
+    const genre = document.getElementById('genre').value;
+    const review = document.getElementById('review').value.trim();
+    let imdbLink = document.getElementById('IMDBLink').value.trim();
+
+    // Normalize the IMDB link to ensure it has protocol
+    if (imdbLink && !imdbLink.startsWith('http://') && !imdbLink.startsWith('https://')) {
+      imdbLink = 'https://' + imdbLink;
+    }
+
+    if (!movieName || !review || selectedRating === 0) {
+      alert('Please fill out all fields and select a rating.');
+      return;
+    }
+
+    const entries = JSON.parse(localStorage.getItem('entries') || '[]');
+    entries.push({ movieName, genre, review, rating: selectedRating, imdbLink });
+    localStorage.setItem('entries', JSON.stringify(entries));
+
+    document.getElementById('movieName').value = '';
+    document.getElementById('review').value = '';
+    document.getElementById('IMDBLink').value = '';
+    selectedRating = 0;
+    updateStars();
+    displayEntries();
+
+    const message = document.getElementById('message');
+    message.textContent = 'Entry saved successfully!';
+    message.style.display = 'block';
+    setTimeout(() => { message.style.display = 'none'; }, 3000);
+  }
+
+  function displayEntries() {
+    const filterGenre = document.getElementById('filterGenre').value;
+    const entries = JSON.parse(localStorage.getItem('entries') || '[]');
+    const filtered = filterGenre === 'All' ? entries : entries.filter(e => e.genre === filterGenre);
+
+    const entriesDiv = document.getElementById('entries');
+    entriesDiv.innerHTML = '';
+
+    if (filtered.length === 0) {
+      entriesDiv.innerHTML = '<p>No entries found.</p>';
+      return;
+    }
+
+    filtered.forEach(entry => {
+      const originalIndex = entries.indexOf(entry);
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = `
+        <strong>${entry.movieName}</strong> (${entry.genre})<br/>
+        Rating: ${'★'.repeat(entry.rating)}<br/>
+        ${entry.review}
+        ${entry.imdbLink ? `<br/><a href="${entry.imdbLink}" target="_blank" rel="noopener noreferrer">IMDB Link</a>` : ''}
+        <br/><button onclick="deleteEntry(${originalIndex})">Delete</button>
+      `;
+      entriesDiv.appendChild(div);
+    });
+  }
+
+  function deleteEntry(index) {
+    const entries = JSON.parse(localStorage.getItem('entries') || '[]');
+    entries.splice(index, 1);
+    localStorage.setItem('entries', JSON.stringify(entries));
+    displayEntries();
+  }
+
+  function applyTheme(theme) {
+    document.body.className = ''; // Remove all theme classes
+    switch (theme) {
+      case 'light':
+        document.body.classList.add('light-mode');
+        break;
+      case 'ocean':
+        document.body.classList.add('ocean-theme');
+        break;
+      case 'sunset':
+        document.body.classList.add('sunset-theme');
+        break;
+      case 'forest':
+        document.body.classList.add('forest-theme');
+        break;
+      default:
+        break; // default = no class
+    }
+  }
+
+  function toggleTheme() {
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+    const theme = themes[currentThemeIndex];
+    applyTheme(theme);
+    localStorage.setItem('theme', theme);
+  }
+
+  window.onload = () => {
+    const savedTheme = localStorage.getItem('theme') || 'default';
+    currentThemeIndex = themes.indexOf(savedTheme);
+    applyTheme(savedTheme);
+    displayEntries();
+  };
+  </script>
+
+</body>
+</html>
